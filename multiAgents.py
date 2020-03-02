@@ -119,6 +119,25 @@ class MinimaxAgent(MultiAgentSearchAgent):
       Your minimax agent (question 2)
     """
 
+    def recurse_minimax(self, gameState, current_depth):
+        if current_depth == 0:
+            return gameState.getScore()
+
+        num_agents = gameState.getNumAgents()
+        which_agent = -current_depth % num_agents
+
+        actions = gameState.getLegalActions(which_agent)
+        # if this is the case then it is a game_state
+        if len(actions) == 0:
+            return gameState.getScore()
+        if which_agent != 0:
+            [self.recurse_minimax(gameState.generateSuccessor(which_agent, action), current_depth-1) for action in actions]
+
+            return min([self.recurse_minimax(gameState.generateSuccessor(which_agent, action), current_depth-1) for action in actions]) 
+        else: #its pacman
+            return max([self.recurse_minimax(gameState.generateSuccessor(which_agent, action), current_depth-1) for action in actions])
+
+
     def getAction(self, gameState):
         """
           Returns the minimax action from the current gameState using self.depth
@@ -137,7 +156,18 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        max_score = -1000000
+        max_action = None
+        actions = gameState.getLegalActions(0)
+        for action in actions:
+            val = self.recurse_minimax(gameState.generateSuccessor(0,action), gameState.getNumAgents()*self.depth-1)
+            if  val > max_score:
+                max_score = val
+                max_action = action
+
+
+
+        return max_action
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -155,6 +185,22 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
+    def recurse_expectimax(self, gameState, current_depth):
+        if current_depth == 0:
+            return gameState.getScore()
+
+        num_agents = gameState.getNumAgents()
+        which_agent = -current_depth % num_agents
+
+        actions = gameState.getLegalActions(which_agent)
+        # if this is the case then it is a game_state
+        if len(actions) == 0:
+            return gameState.getScore()
+        if which_agent != 0:
+            arr = [self.recurse_expectimax(gameState.generateSuccessor(which_agent, action), current_depth-1) for action in actions] 
+            return (sum(arr)+0.0)/len(arr)
+        else: #its pacman
+            return max([self.recurse_expectimax(gameState.generateSuccessor(which_agent, action), current_depth-1) for action in actions])
 
     def getAction(self, gameState):
         """
@@ -164,8 +210,16 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
-
+        max_score = -1000000
+        max_action = None
+        actions = gameState.getLegalActions(0)
+        for action in actions:
+            val = self.recurse_expectimax(gameState.generateSuccessor(0,action), gameState.getNumAgents()*self.depth-1)
+            if  val > max_score:
+                max_score = val
+                max_action = action
+        return max_action
+    
 def betterEvaluationFunction(currentGameState):
     """
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
