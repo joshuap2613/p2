@@ -68,21 +68,30 @@ class ReflexAgent(Agent):
         """
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
-        newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
-        newGhostStates = successorGameState.getGhostStates()
+        pos = successorGameState.getPacmanPosition()
+        newFood = successorGameState.getFood().asList()
+        newGhostStates = [ghost for ghost in successorGameState.getGhostStates() if not ghost.scaredTimer]
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-
+        capsules = currentGameState.getCapsules()
+        print(newFood)
         "*** YOUR CODE HERE ***"
         min_ghost_distance = 4
-        min_food_distance = 20
-        for pos in successorGameState.getGhostPositions():
-            min_ghost_distance = min(min_ghost_distance, abs(newPos[0]-pos[0])+abs(newPos[1]-pos[1]))
+        min_food_distance = 40
+        min_capsule_distance = 12
+
+        for ghost in newGhostStates:
+            min_ghost_distance = min(min_ghost_distance, abs(pos[0]-ghost.getPosition()[0])+abs(pos[1]-ghost.getPosition()[1]))
         for food in newFood:
+            
             min_food_distance = min(min_food_distance, abs(food[0]-pos[0]) + abs(food[1]-pos[1]))
+        for capsule in capsules:
+            min_capsule_distance = min(min_capsule_distance, abs(capsule[0]-pos[0]) + abs(capsule[1]-pos[1]))
         food_diff = currentGameState.getNumFood() - successorGameState.getNumFood()
-        print(successorGameState.getScore(), min_ghost_distance,(1.0/ (min_ghost_distance+ .01))*1.5, food_diff) 
-        return -(1.0/ (min_ghost_distance+ .01)*4) + (1/min_food_distance)*5 + 2*food_diff#*1000
+        print(successorGameState.getScore(), min_ghost_distance,(1.0/ (min_ghost_distance+ .01))*1.5, food_diff, (1.0/min_food_distance)*5 )
+        print("min food distance is", min_food_distance)
+        print("score is",  -(1.0/ (min_ghost_distance+ .01)*4) + (1.0/min_food_distance)*5 + 5*food_diff)
+        #return 0
+        return (-(1.0/ (min_ghost_distance+ .01)*4) - (min_food_distance) + 5*food_diff) + successorGameState.getScore()#*1000
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -273,6 +282,17 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+
+    min_ghost_distance = 4
+    min_food_distance = 20
+    for pos in currentGameState.getGhostPositions():
+        min_ghost_distance = min(min_ghost_distance, abs(newPos[0]-pos[0])+abs(newPos[1]-pos[1]))
+    for food in newFood:
+        min_food_distance = min(min_food_distance, abs(food[0]-pos[0]) + abs(food[1]-pos[1]))
+    return -1/min_ghost_distance*10+1/min_food_distance
     util.raiseNotDefined()
 
 # Abbreviation
