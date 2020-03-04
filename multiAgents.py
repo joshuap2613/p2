@@ -18,6 +18,7 @@ import random, util
 
 from game import Agent
 
+
 class ReflexAgent(Agent):
     """
       A reflex agent chooses an action at each choice point by examining
@@ -27,7 +28,6 @@ class ReflexAgent(Agent):
       it in any way you see fit, so long as you don't touch our method
       headers.
     """
-
 
     def getAction(self, gameState):
         """
@@ -45,7 +45,7 @@ class ReflexAgent(Agent):
         scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
         bestScore = max(scores)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
-        chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+        chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
 
         "Add more of your code here if you want to"
 
@@ -73,25 +73,27 @@ class ReflexAgent(Agent):
         newGhostStates = [ghost for ghost in successorGameState.getGhostStates() if not ghost.scaredTimer]
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
         capsules = currentGameState.getCapsules()
-        print(newFood)
         "*** YOUR CODE HERE ***"
         min_ghost_distance = 4
         min_food_distance = 40
         min_capsule_distance = 12
 
         for ghost in newGhostStates:
-            min_ghost_distance = min(min_ghost_distance, abs(pos[0]-ghost.getPosition()[0])+abs(pos[1]-ghost.getPosition()[1]))
+            min_ghost_distance = min(min_ghost_distance,
+                                     abs(pos[0] - ghost.getPosition()[0]) + abs(pos[1] - ghost.getPosition()[1]))
         for food in newFood:
-            
-            min_food_distance = min(min_food_distance, abs(food[0]-pos[0]) + abs(food[1]-pos[1]))
+            min_food_distance = min(min_food_distance, abs(food[0] - pos[0]) + abs(food[1] - pos[1]))
         for capsule in capsules:
-            min_capsule_distance = min(min_capsule_distance, abs(capsule[0]-pos[0]) + abs(capsule[1]-pos[1]))
+            min_capsule_distance = min(min_capsule_distance, abs(capsule[0] - pos[0]) + abs(capsule[1] - pos[1]))
         food_diff = currentGameState.getNumFood() - successorGameState.getNumFood()
-        print(successorGameState.getScore(), min_ghost_distance,(1.0/ (min_ghost_distance+ .01))*1.5, food_diff, (1.0/min_food_distance)*5 )
-        print("min food distance is", min_food_distance)
-        print("score is",  -(1.0/ (min_ghost_distance+ .01)*4) + (1.0/min_food_distance)*5 + 5*food_diff)
-        #return 0
-        return (-(1.0/ (min_ghost_distance+ .01)*4) - (min_food_distance) + 5*food_diff) + successorGameState.getScore()#*1000
+        #print(successorGameState.getScore(), min_ghost_distance, (1.0 / (min_ghost_distance + .01)) * 1.5, food_diff,
+        #      (1.0 / min_food_distance) * 5)
+        #print("min food distance is", min_food_distance)
+        #print("score is", -(1.0 / (min_ghost_distance + .01) * 4) + (1.0 / min_food_distance) * 5 + 5 * food_diff)
+        # return 0
+        return (-(1.0 / (min_ghost_distance + .01) * 4) - (
+            min_food_distance) + 5 * food_diff) + successorGameState.getScore()  # *1000
+
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -102,6 +104,7 @@ def scoreEvaluationFunction(currentGameState):
       (not reflex agents).
     """
     return currentGameState.getScore()
+
 
 class MultiAgentSearchAgent(Agent):
     """
@@ -118,10 +121,11 @@ class MultiAgentSearchAgent(Agent):
       is another abstract class.
     """
 
-    def __init__(self, evalFn = 'scoreEvaluationFunction', depth = '2'):
-        self.index = 0 # Pacman is always agent index 0
+    def __init__(self, evalFn='scoreEvaluationFunction', depth='2'):
+        self.index = 0  # Pacman is always agent index 0
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
+
 
 class MinimaxAgent(MultiAgentSearchAgent):
     """
@@ -130,7 +134,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
     def recurse_minimax(self, gameState, current_depth):
         if current_depth == 0:
-            return gameState.getScore()
+            return self.evaluationFunction(gameState)
 
         num_agents = gameState.getNumAgents()
         which_agent = -current_depth % num_agents
@@ -140,12 +144,16 @@ class MinimaxAgent(MultiAgentSearchAgent):
         if len(actions) == 0:
             return gameState.getScore()
         if which_agent != 0:
-            [self.recurse_minimax(gameState.generateSuccessor(which_agent, action), current_depth-1) for action in actions]
+            [self.recurse_minimax(gameState.generateSuccessor(which_agent, action), current_depth - 1) for action in
+             actions]
 
-            return min([self.recurse_minimax(gameState.generateSuccessor(which_agent, action), current_depth-1) for action in actions]) 
-        else: #its pacman
-            return max([self.recurse_minimax(gameState.generateSuccessor(which_agent, action), current_depth-1) for action in actions])
-
+            return min(
+                [self.recurse_minimax(gameState.generateSuccessor(which_agent, action), current_depth - 1) for action in
+                 actions])
+        else:  # its pacman
+            return max(
+                [self.recurse_minimax(gameState.generateSuccessor(which_agent, action), current_depth - 1) for action in
+                 actions])
 
     def getAction(self, gameState):
         """
@@ -169,22 +177,23 @@ class MinimaxAgent(MultiAgentSearchAgent):
         max_action = None
         actions = gameState.getLegalActions(0)
         for action in actions:
-            val = self.recurse_minimax(gameState.generateSuccessor(0,action), gameState.getNumAgents()*self.depth-1)
-            if  val > max_score:
+            val = self.recurse_minimax(gameState.generateSuccessor(0, action),
+                                       gameState.getNumAgents() * self.depth - 1)
+            if val > max_score:
                 max_score = val
                 max_action = action
 
-
-
         return max_action
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Your minimax agent with alpha-beta pruning (question 3)
     """
+
     def recurse_ab(self, gameState, current_depth, alpha, beta):
         if current_depth == 0:
-            return gameState.getScore()
+            return self.evaluationFunction(gameState)
 
         num_agents = gameState.getNumAgents()
         which_agent = -current_depth % num_agents
@@ -193,24 +202,25 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         # if this is the case then it is a game_state
         if len(actions) == 0:
             return gameState.getScore()
-        #minimizer ghosts
+        # minimizer ghosts
         if which_agent != 0:
             v = 100000000
             for action in actions:
-                v = min(v, self.recurse_ab(gameState.generateSuccessor(which_agent, action), current_depth-1, alpha, beta))
+                v = min(v, self.recurse_ab(gameState.generateSuccessor(which_agent, action), current_depth - 1, alpha,
+                                           beta))
                 if v < alpha:
                     return v
                 beta = min(beta, v)
             return v
-        else: #its pacman
+        else:  # its pacman
             v = -100000000
             for action in actions:
-                v = max(v, self.recurse_ab(gameState.generateSuccessor(which_agent, action), current_depth-1, alpha, beta))
+                v = max(v, self.recurse_ab(gameState.generateSuccessor(which_agent, action), current_depth - 1, alpha,
+                                           beta))
                 if v > beta:
                     return v
                 alpha = max(alpha, v)
             return v
-
 
     def getAction(self, gameState):
         """
@@ -223,14 +233,14 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         max_action = None
         actions = gameState.getLegalActions(0)
         for action in actions:
-            val = self.recurse_ab(gameState.generateSuccessor(0, action), gameState.getNumAgents()*self.depth-1, alpha, beta)
+            val = self.recurse_ab(gameState.generateSuccessor(0, action), gameState.getNumAgents() * self.depth - 1,
+                                  alpha, beta)
             if val > max_score:
                 max_action = action
                 max_score = val
             if max_score > beta:
                 return action
             alpha = max(alpha, val)
-
 
         return max_action
 
@@ -239,9 +249,10 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
+
     def recurse_expectimax(self, gameState, current_depth):
         if current_depth == 0:
-            return gameState.getScore()
+            return self.evaluationFunction(gameState)
 
         num_agents = gameState.getNumAgents()
         which_agent = -current_depth % num_agents
@@ -251,10 +262,13 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         if len(actions) == 0:
             return gameState.getScore()
         if which_agent != 0:
-            arr = [self.recurse_expectimax(gameState.generateSuccessor(which_agent, action), current_depth-1) for action in actions] 
-            return (sum(arr)+0.0)/len(arr)
-        else: #its pacman
-            return max([self.recurse_expectimax(gameState.generateSuccessor(which_agent, action), current_depth-1) for action in actions])
+            arr = [self.recurse_expectimax(gameState.generateSuccessor(which_agent, action), current_depth - 1) for
+                   action in actions]
+            return (sum(arr) + 0.0) / len(arr)
+        else:  # its pacman
+            return max(
+                [self.recurse_expectimax(gameState.generateSuccessor(which_agent, action), current_depth - 1) for action
+                 in actions])
 
     def getAction(self, gameState):
         """
@@ -268,12 +282,14 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         max_action = None
         actions = gameState.getLegalActions(0)
         for action in actions:
-            val = self.recurse_expectimax(gameState.generateSuccessor(0,action), gameState.getNumAgents()*self.depth-1)
-            if  val > max_score:
+            val = self.recurse_expectimax(gameState.generateSuccessor(0, action),
+                                          gameState.getNumAgents() * self.depth - 1)
+            if val > max_score:
                 max_score = val
                 max_action = action
         return max_action
-    
+
+
 def betterEvaluationFunction(currentGameState):
     """
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
@@ -281,20 +297,27 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    newPos = currentGameState.getPacmanPosition()
-    newFood = currentGameState.getFood()
-    newGhostStates = currentGameState.getGhostStates()
+    # Useful information you can extract from a GameState (pacman.py)
+    pos = currentGameState.getPacmanPosition()
+    foods = currentGameState.getFood().asList()
+    ghostStates = currentGameState.getGhostStates()
+    scaredTimes = [ghostState.scaredTimer for ghostState in ghostStates]
+    capsules = currentGameState.getCapsules()
 
     min_ghost_distance = 4
-    min_food_distance = 20
-    for pos in currentGameState.getGhostPositions():
-        min_ghost_distance = min(min_ghost_distance, abs(newPos[0]-pos[0])+abs(newPos[1]-pos[1]))
-    for food in newFood:
-        min_food_distance = min(min_food_distance, abs(food[0]-pos[0]) + abs(food[1]-pos[1]))
-    return -1/min_ghost_distance*10+1/min_food_distance
-    util.raiseNotDefined()
+    min_food_distance = 40
+    min_capsule_distance = 12
+    for ghost in ghostStates:
+        min_ghost_distance = min(min_ghost_distance,
+                                 abs(pos[0] - ghost.getPosition()[0]) + abs(pos[1] - ghost.getPosition()[1]))
+    for food in foods:
+        min_food_distance = min(min_food_distance, abs(food[0] - pos[0]) + abs(food[1] - pos[1]))
+    for capsule in capsules:
+        min_capsule_distance = min(min_capsule_distance, abs(capsule[0] - pos[0]) + abs(capsule[1] - pos[1]))
+
+    return (-(1.0 / (min_ghost_distance + .01) * 4) - (
+        min_food_distance) - 5*len(foods)) + currentGameState.getScore() - 10*len(capsules)  # *1000
+
 
 # Abbreviation
 better = betterEvaluationFunction
-
